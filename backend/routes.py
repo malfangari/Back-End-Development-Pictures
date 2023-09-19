@@ -35,7 +35,12 @@ def count():
 ######################################################################
 @app.route("/picture", methods=["GET"])
 def get_pictures():
-    pass
+    if data:
+        picture_URLs = [] 
+        for picture in data:
+            picture_URLs.append(picture)
+        return jsonify(picture_URLs),200
+    #pass
 
 ######################################################################
 # GET A PICTURE
@@ -44,7 +49,17 @@ def get_pictures():
 
 @app.route("/picture/<int:id>", methods=["GET"])
 def get_picture_by_id(id):
-    pass
+    query = id
+    matching  = None
+    for picture in data:
+        if query == picture["id"]:
+            matching = picture
+            break
+    if matching:    
+        return jsonify(dict(matching)), 200
+    else:
+        return {"message": "picture not found"}, 404
+    #pass
 
 
 ######################################################################
@@ -52,7 +67,19 @@ def get_picture_by_id(id):
 ######################################################################
 @app.route("/picture", methods=["POST"])
 def create_picture():
-    pass
+    new_pic = request.get_json()
+    if data:
+        flag = False
+        for exist_pic in data:
+            if exist_pic["id"] == new_pic["id"]:
+                flag = True
+                break
+        if flag == True:
+           return {"Message":  f"picture with id {exist_pic['id']} already present"},302
+        else:
+            data.append(new_pic)
+            return {"Message": "Picture added successfully"},201
+   #pass
 
 ######################################################################
 # UPDATE A PICTURE
@@ -61,11 +88,40 @@ def create_picture():
 
 @app.route("/picture/<int:id>", methods=["PUT"])
 def update_picture(id):
-    pass
+    new_pic = request.get_json()
+    if data:
+        flag = False
+        for exist_pic in data:
+            if exist_pic["id"] == id:
+                flag = True
+                break
+        if flag == True:   
+            exist_pic["pic_url"] = new_pic["pic_url"]
+            exist_pic["event_country"] = new_pic["event_country"]
+            exist_pic["event_state"] = new_pic["event_state"]
+            exist_pic["event_city"] = new_pic["event_city"]
+            exist_pic["event_date"] = new_pic["event_date"]
+            return {"message": f"Pictuer Number:  {id}  is updated"},202
+        else:
+            return {"message": "picture not found"},404
+    #pass
 
 ######################################################################
 # DELETE A PICTURE
 ######################################################################
 @app.route("/picture/<int:id>", methods=["DELETE"])
 def delete_picture(id):
-    pass
+    global data
+    to_be_deleted = id
+    flag = False
+    if data:
+       for exist_pic in data:
+          if exist_pic["id"] == id:
+             flag = True
+             break
+       if flag == True:   
+          data = [item for item in data if item["id"] != to_be_deleted]
+          return jsonify(dict(status="HTTP_204_NO_CONTENT")), 204
+       else:
+          return {"message": "picture not found"},404
+    #pass
